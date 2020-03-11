@@ -95,7 +95,10 @@ proc REVERSE_GET_CONTAINS {c map} {
 # eg: GET_ARG {a:  int} --> {a int}
 proc GET_ARG {c sep} {
 	# We modify the text before
-	return [split [eval concat [split [string map "{ } {}" $c] $sep]]]
+	set c [string map "{ } {}" $c]
+	set data [GET_CONTAINS $c "(" ")"]
+	set c [split [eval concat [split [lindex $data 0] $sep]]]
+	return [REVERSE_GET_CONTAINS $c [lindex $data 1]]
 }
 
 # This function, verify if a var exist
@@ -138,6 +141,40 @@ proc IS_ARRAY {varname {line none}} {
 		# We construct the tcl name
 		set arrayname $arrayname\([string range $index 1 end]\)
 		return [list $arrayname $type]
+	}
+	return
+}
+
+# This function, verify if an function exist
+proc IS_FUNCTION {function_name {line none}} {
+	global FUNCTION
+	# We get contains in the bracket, to evit error in the continuous
+	set data [GET_CONTAINS $function_name "(" ")"]
+	# We space the bracket
+	set _data [string map "( { ( } ) { ) }" [lindex $data 0]]
+	set function_name [lindex $_data 0]
+	set args ""
+	if {[lsearch -exact [array names FUNCTION] $function_name,type] != -1} {
+		set type [lindex [array get FUNCTION $function_name,type] 1]
+		set token1 [lindex $_data 1]
+		set arg [lindex $_data 2]
+		set token3 [lindex $_data 3]
+		if {$token1 == "(" && $token3 == ")"} {
+			# We restore the data save before
+			set arg [REVERSE_GET_CONTAINS $arg [lindex $data 1]]
+			if {$arg != ""} {
+				# arg maybe an expression (var, array, calcul, ...)
+				# We add in the list after the operation
+				foreach e [GET_ARG $arg ,] {
+					set args "$args [GET_CALCUL $e $line]"
+				}
+			}
+		} else {
+			error "Error in line $line, syntax error"
+		}
+		# We construct the tcl name
+		set function "\[$function_name $args\]"
+		return [list $function $type]
 	}
 	return
 }
@@ -195,9 +232,10 @@ proc GET_EXPR {c {line none}} {
 	# We restore the data save before
 	set c [REVERSE_GET_CONTAINS $c [lindex $data 1]]
 	foreach e $c {
-		# We verify if is var or array
+		# We verify if is var or array or function
 		set is_var 0
 		set is_array 0
+		set is_function 0
 		set data [IS_VAR $e $line]
 		if {$data != ""} {set is_var 1;set var_type $data}
 		set data [IS_ARRAY $e $line]
@@ -205,6 +243,12 @@ proc GET_EXPR {c {line none}} {
 			set arrayname [lindex $data 0]
 			set type [lindex $data 1]
 			set is_array 1
+		}
+		set data [IS_FUNCTION $e $line]
+		if {$data != ""} {
+			set function [lindex $data 0]
+			set type [lindex $data 1]
+			set is_function 1
 		}
 		if [string is integer $e] {
 			lappend result integer $e
@@ -221,6 +265,8 @@ proc GET_EXPR {c {line none}} {
 			}
 		} elseif {$is_array} {
 			lappend result $type $$arrayname
+		} elseif {$is_function} {
+			lappend result $type $function
 		} elseif {[lsearch $OPERATORS $e] != -1} {
 			lappend result operator $e
 		} else {
@@ -249,7 +295,6 @@ proc GET_CALCUL {c {line none} {primary_type ""}} {
 		set result "$result$value"
 	}
 	if {$is_decimal} {
-		if {[lsearch $INTEGERS $primary_type] != -1} {set result "\[expr int\($result\)\]"}
 		return "\[expr $result\]"
 	} else {
 		return $result
@@ -258,7 +303,7 @@ proc GET_CALCUL {c {line none} {primary_type ""}} {
 
 # This function eval the algo
 proc EVAL {code} {
-	global VAR TYPES ARRAY
+	global VAR TYPES ARRAY FUNCTION
 	set line 0
 	set new_code ""
 	set d [GET_STRING $code]
@@ -393,6 +438,39 @@ proc EVAL {code} {
 						error "Error in line $line, syntax error"
 					}
 				}
+			}
+			FUNCTION {
+				incr bracket_open
+				set args [string map [list ( " ( { " ) " } ) " : " : "] $args]
+				set function_name [lindex $args 0]
+				set token1 [lindex $args 1]
+				set declaration [lindex $args 2]
+				set token2 [lindex $args 3]
+				set token3 [lindex $args 4]
+				set function_type [lindex $args 5]
+				if {$function_name != "" && $token1 == "(" && $token2 == ")" && $token3 == ":" && $function_type != ""} {
+					if {[lsearch $TYPES $function_type] != -1} {
+						set FUNCTION($function_name,type) $function_type
+						set new_code "$new_code;proc $function_name \{\{args \{\}\}\} \{"
+						set count 0
+						foreach varname [GET_ARG $declaration ,] {
+							set data [IS_VAR $varname]
+							if {$data != ""} {
+								set new_code "$new_code;set $varname \[lindex \$args $count\]"
+							} else {
+								error "Error in line $line, var $varname unknowed"
+							}
+							incr count
+						}
+					} else {
+						error "Error in line $line, type \"$function_type\" unknowed\n types allow: $TYPES"
+					}
+				} else {
+					error "Error ine line $line, syntax error"
+				}
+			}
+			RETURN {
+				set new_code "$new_code;return [GET_CALCUL $args]"
 			}
 			default {
 				# Default, affectation

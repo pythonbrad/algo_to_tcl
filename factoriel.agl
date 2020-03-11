@@ -1,0 +1,17 @@
+VAR nb:digit
+
+FUNCTION fact(nb):digit
+	IF nb > 0
+		RETURN nb*fact(nb-1)
+	ELSEIF nb == 0
+		RETURN 1
+	ELSE
+		RETURN nb
+	END
+END
+
+BEGIN
+	WRITE "You want the fact of what number?"
+	READ nb
+	WRITE "His fact is ", fact(nb)
+END

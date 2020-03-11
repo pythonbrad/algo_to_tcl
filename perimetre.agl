@@ -1,0 +1,17 @@
+ALGO "Perimetre"
+
+VAR longueur:double
+VAR largeur:double
+
+FUNCTION perimetre(longueur, largeur):double
+	# Alternative a RETURN longueur*2+largeur+2
+	RETURN "($longueur+$largeur)*2"
+END
+
+BEGIN
+	WRITE "Enter la longueur: "
+	READ longueur
+	WRITE "Enter la largeur: "
+	READ largeur
+	WRITE "le perimetre est ", perimetre(longueur, largeur)
+END
