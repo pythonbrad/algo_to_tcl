@@ -1,0 +1,23 @@
+ALGO "Suite"
+# Tableau Suite(7) en Entier
+ARRAY Suite:integer
+# Variable i en Entier
+VAR i:integer
+# Début
+BEGIN
+	# Suite(0) ← 1
+	Suite(0) <- 1
+	# Suite(1) ← 1
+	Suite(1) <- 1
+	# Pour i ← 2 à 7
+	FOR i <- 2 TO 7
+		# Suite(i) ← Suite(i-1) + Suite(i-2)
+		Suite(i) <- Suite(i-1) + Suite(i-2)
+	END
+	# Pour i ← 0 à 7
+	FOR i <- 0 TO 7
+		# Ecrire Suite(i)
+		WRITE Suite(i)
+	END
+# Fin
+END

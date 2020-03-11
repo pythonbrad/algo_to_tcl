@@ -1,0 +1,35 @@
+ALGO "Carree Matrice Carree"
+
+ARRAY matrice:integer
+ARRAY result:integer
+
+VAR length_matrice:integer
+VAR length_data:integer
+
+VAR count:integer
+VAR i:integer
+VAR j:integer
+VAR k:integer
+
+BEGIN
+	length_matrice <- 2
+	WRITE "Enter la longueur de la matrice carree, min 2"
+	READ length_data
+	FOR i <- 0 TO length_matrice
+		count <- 0
+		WHILE count < length_data
+			WRITE "Entrer la valeur de la matrice ",i,",",count
+			READ matrice(i)(count)
+			count <- count+1
+		END
+	END
+	FOR i<-0 TO length_matrice
+		FOR j<-0 TO length_data
+			result(i)(j) <- 0
+			FOR k<-0 TO length_matrice
+				result(i)(j) <- result(i)(j) + matrice(i)(k)*matrice(k)(j)
+			END
+		END
+	END
+	WRITE "[array get result]"
+END

@@ -1,0 +1,17 @@
+ALGO "test"
+ARRAY data:double
+VAR i:integer
+VAR ii:integer
+
+BEGIN
+	data(0 + 0)(0+0) <- "{{a}=={a}}"
+	data(data(0)(0))(data(0)(0)) <- 0
+	WRITE data(1)(1), 2*2
+	WRITE 1 + 1 + 1+1 +          1               +          1
+	FOR i <- 0 TO 100
+		FOR ii <- 0 TO 100
+			data(i)(ii) <- i*ii
+		END
+	END
+	WRITE "[array names data]"
+END

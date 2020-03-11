@@ -1,0 +1,20 @@
+ALGO GAME
+VAR number:integer
+VAR entry:integer
+VAR t:ascii
+BEGIN
+	number <- "int(rand()*10)"
+	entry <- 0
+	WRITE "Devine le nombre"
+	WHILE number != entry
+		WRITE "Nombre: "
+		READ entry
+		IF entry < number
+			WRITE "C est plus"
+		ELSEIF entry > number
+			WRITE "C est moins"
+		ELSE
+			WRITE "Tu as trouver"
+		END
+	END
+END

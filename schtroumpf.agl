@@ -1,0 +1,46 @@
+ALGO schtroumpf
+
+ARRAY table:integer
+VAR result:integer
+VAR loop:boolean
+VAR i:digit
+VAR ii:digit
+
+BEGIN
+	result <- 0
+	FOR i<-0 TO 2
+		WRITE "Enter the table ", i
+		loop<-1
+		ii<-0
+		WHILE loop
+			WRITE "Enter the column ", ii
+			READ table(i)(ii)
+			IF table(i)(ii) <= -1
+				loop <- 0
+			END
+			ii<-ii+1
+		END
+	END
+	WRITE "We calcul the schtroumpf"
+	loop <- 1
+	i <- 0
+	WHILE loop
+		IF table(0)(i) >= 0
+			ii <- 0
+			WHILE loop
+				IF table(1)(ii) >= 0
+					WRITE "result = ", "" + result + table(0)(i) * table(1)(ii)
+					result <- result + table(0)(i) * table(1)(ii)
+				ELSE
+					loop <- 0
+				END
+				ii<-ii+1
+			END
+			loop <- 1
+		ELSE
+			loop<-0
+		END
+		i <- i + 1
+	END
+	WRITE "Result: ",result
+END

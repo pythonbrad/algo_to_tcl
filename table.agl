@@ -1,0 +1,19 @@
+# We set the name of the algorithm
+ALGO "Table"
+
+# We declare variable
+VAR nb:integer
+VAR i:integer
+
+# We start the program
+BEGIN
+	# We show a message to user
+	WRITE "You want the table of?:"
+	READ nb
+	i <- 0
+	WHILE i <= 12
+		WRITE nb, " * ", i, " == ", nb*i
+		i <- i + 1
+	END
+	WRITE "Program end"
+END

@@ -1,0 +1,29 @@
+ALGO "Test"
+
+VAR a:boolean
+VAR b:digit
+VAR c:alnum
+
+BEGIN
+	WRITE "You want enter in my program?"
+	READ a
+	IF a
+		b <- 0
+		WHILE b < 10
+			WRITE "You are enter!"
+			b <- b +1
+		END
+		WRITE "Enter a digit: "
+		READ b
+		WRITE "His square is ", b**2
+		WRITE "Enter ok"
+		READ c
+		IF c == "{ok}"
+			WRITE "Thank"
+		ELSE
+			WRITE "You are enter: ", c
+		END
+	ELSE
+		WRITE "Bye"
+	END
+END

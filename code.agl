@@ -1,0 +1,96 @@
+# LEXIQUE
+# GET_ARG qui renvoie la liste des arguments en fonction d'un separateur
+	# Bien le tester pour voir les reformatage a faire avant de l'utiliser
+	# On retournera les elements de la forme "a b c d e"
+# GET_EXPR qui renvoie un array de cette forme type value ... type value
+	# Elle permet de determiner le type de l'element a manipuler
+	# On verifira la presence des differents operateurs valides et on effectura un reformatage
+	# string map [list * " * " ... - " - "] expression
+	# Ca permet d eviter les x+y comme un seul element
+	# Et on verifira le resultat pour voir s'il y'a un traitement a faire
+	# Si on a un type var_name, on verifie s'il est declarer
+	# On aura 4 type: printable, var_name, operator, number
+	# On retournera une expression de la forme "printable <string> operator + decimal toto"
+# GET_CALCUL qui renvoie un calcul, et erreur en cas d'erreur dans l'expression passer
+# Prend un argument primary_type, qui est par default ""
+	# Renvoira un erreur
+	# L'analyse se fera comme suit
+		# On aura a determine la value commune
+		# Le premier element impose le type des autres, mais on peut passer un type primaire
+		# Dans la cas de l affectation, le type de la variable peut etre passer comme type primaire
+			# eg: le type primaire ici est celui de a, a doit donc etre passer en argument
+			# a <- 1+3+"hello"
+		# Dans le cas ci dessous, si a est de type integer ou double
+		# Tout element les autres elements devront etre de type integer ou double
+		# Dans l'obtention d'un var_name, on aura a verifie son type
+		# Si le premier element est un operateur, c'est une erreur
+		# Si un operateur revient deux fois de suite, c'est une erreur
+	# On retournera une expression TCL de la forme
+	# [eval concat <string> [set <var_name>]] si premier element de type string
+		# Dans le cas ci-dessous le premier element est de type string
+		# Tous autres elements sont inclus dans string
+		# Si operator est +
+		# On aura qu'a les fusionnees
+		# "Son carree est " + b
+		# Si operator *
+		# eg: <string> * 4
+		# On duplique <string> 4 fois
+		# EXEMPLE DE CALCUL
+		# <string> * <
+	# Ou [expr [set <var_name>] * 1 + 2 / 3] si calcul entre decimal
+
+ALGO "CARREE"
+# Utiliser que les variables generales
+VAR a:double
+VAR b:double
+VAR c:ascii
+VAR d:boolean
+BEGIN
+	# Dans le cas ci-dessous
+	# On a un argument de type printable
+	# Tous les arguments devront d'abord etre analyse
+	# On utilisera trois fonctions
+	# GET_ARG, GET_EXPR et GET_CALCUL : voir lexique
+	# Apres l'obtention des arguments on verifira le type
+	# On fait passer chaque argument un par un au GET_EXPR
+	# Si type operator detecter, on suppose que c'est un calcul
+	# Si pas de operator detecter, on suppose que c'est un string
+	# Si string on l'affiche
+	# Si calcul on l'affiche apres l'avoir fais passer a GET_CALCUL
+	# puts -nonewline
+	# et apres le derniers arguments on utilisera
+	# puts -nonewline \n
+	WRITE "9**3=" , 9**3
+	WRITE "Entrer un nombre eg (", 5,", ", 5*2, "): "
+	# Avec READ
+	# On ne peut qu'avoir un seul argument qui sera de type var_name
+	READ a
+	WRITE "Tu as entrer:"," ", a
+	# Avec l'affectation
+	# On ne peut qu'avoir un seul argument
+	# Soit l'un des types suivants, var_name, calcul, printable
+	# On aura 1 fonction a utiliser GET_EXPR  : voir lexique
+	b <- a * a * 2 / 2 + 2 - 2
+	b <- a * a
+	b <- a* a
+	b <- a *a
+	b <- a*a
+	c <- "Son carree est " + b
+	WRITE c
+	WRITE "Le double de son carree est ", b*2
+	WRITE "WE BEGIN THE SECOND TEST"
+	WRITE "Je te salut? "
+	READ d
+	IF d
+		WRITE "Hello World!"
+	END
+	WRITE "Entre un nombre: "
+	READ b
+	IF b**2>10
+		WRITE "Son carre est superieur a 10"
+	ELSEIF b**2<10
+		WRITE "Son carre est inferieur a 10"
+	ELSE
+		WRITE "Son carree est egale a 10"
+	END
+END
