@@ -13,7 +13,7 @@ BEGIN
 		loop<-1
 		ii<-0
 		WHILE loop
-			WRITE "Enter the column ", ii
+			WRITE "Enter the column ", ii, " or write -1 to continuous"
 			READ table(i)(ii)
 			IF table(i)(ii) <= -1
 				loop <- 0

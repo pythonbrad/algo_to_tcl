@@ -1,6 +1,7 @@
 #!/usr/bin/tclsh
 # Should be compatible with tclsh and jimsh for the console
-
+#mettre int a get calcul pour les arrray
+#ou bien laisser et creer un algo etudiant de ges de not comme a iht avec pour exploiter ca
 # This var contains the list of operator valid, by other of priority
 set OPERATORS "+ - / * == != <= >= < > %"
 set TYPES "alnum alpha ascii control boolean digit double entier false integer list lower print punct space true upper wordchar xdigit"
@@ -45,7 +46,8 @@ proc GET_STRING code {
 		}
 	}
 	foreach "value var" $data {
-		set code [string map [list $value $var] $code]
+		# \"\" beetwen var to evit error if contains \n#
+		set code [string map [list $value \"$var\"] $code]
 	}
 	return [list $code $data]
 }
@@ -456,7 +458,8 @@ proc EVAL {code} {
 						foreach varname [GET_ARG $declaration ,] {
 							set data [IS_VAR $varname]
 							if {$data != ""} {
-								set new_code "$new_code;set $varname \[lindex \$args $count\]"
+								set type $data
+								set new_code "$new_code;set $varname \[lindex \$args $count\];if !\[string is $type $$varname\] {error \"Error in line $line, $type expected\"}"
 							} else {
 								error "Error in line $line, var $varname unknowed"
 							}
@@ -502,7 +505,7 @@ proc EVAL {code} {
 					set result [GET_CALCUL $args $line $type]
 					set new_code "$new_code;[format [info body AFFECTATION_STRUCT] $result $type $varname $line $type]"
 				} else {
-					error "Error in line $line, keyword \"[lindex $c 0]\" unknowed"
+					set new_code "$new_code;set @ [GET_CALCUL $c $line]"
 				}
 			}
 		}
