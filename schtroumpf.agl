@@ -14,8 +14,8 @@ BEGIN
 		ii<-0
 		WHILE loop
 			WRITE "Enter the column ", ii, " or write -1 to continuous"
-			READ table(i)(ii)
-			IF table(i)(ii) <= -1
+			READ table[i][ii]
+			IF table[i][ii] <= -1
 				loop <- 0
 			END
 			ii<-ii+1
@@ -25,12 +25,12 @@ BEGIN
 	loop <- 1
 	i <- 0
 	WHILE loop
-		IF table(0)(i) >= 0
+		IF table[0][i] >= 0
 			ii <- 0
 			WHILE loop
-				IF table(1)(ii) >= 0
-					WRITE "result = ", "" + result + table(0)(i) * table(1)(ii)
-					result <- result + table(0)(i) * table(1)(ii)
+				IF table[1][ii] >= 0
+					WRITE "result = ", "" + result + table[0][i] * table[1][ii]
+					result <- result + table[0][i] * table[1][ii]
 				ELSE
 					loop <- 0
 				END

@@ -3,10 +3,12 @@
 #mettre int a get calcul pour les arrray
 #ou bien laisser et creer un algo etudiant de ges de not comme a iht avec pour exploiter ca
 # This var contains the list of operator valid, by other of priority
-set OPERATORS "+ - / * == != <= >= < > %"
+set OPERATORS "+ - / * == != <= >= < > % && & || |"
 set TYPES "alnum alpha ascii control boolean digit double entier false integer list lower print punct space true upper wordchar xdigit"
 set INTEGERS "integer entier digit"
 set DOUBLES "$INTEGERS double"
+# This var permit to know if verify data or not
+set ignore 0
 
 # This function remove comment
 proc DEL_COMMENT code {
@@ -99,15 +101,18 @@ proc GET_ARG {c sep} {
 	# We modify the text before
 	set c [string map "{ } {}" $c]
 	set data [GET_CONTAINS $c "(" ")"]
-	set c [split [eval concat [split [lindex $data 0] $sep]]]
+	set c [eval concat [split [eval concat [split [lindex $data 0] $sep]]]]
+	# We do it to evit error in the using as list
+	set c [string map [list "\"" "\\\""] $c]
 	return [REVERSE_GET_CONTAINS $c [lindex $data 1]]
 }
 
 # This function, verify if a var exist
 proc IS_VAR {varname {line none} {safe 1}} {
-	global VAR
-	if {[lsearch -exact [array names VAR] $varname,type] != -1} {
+	global VAR ignore
+	if {[lsearch -exact [array names VAR] $varname,type] != -1 || $ignore & [string is wordchar $varname] & ![string is double $varname]} {
 		set type [lindex [array get VAR $varname,type] 1]
+		if {$ignore && $type == ""} {set type ascii}
 		return $type
 	} else {
 		return
@@ -116,29 +121,37 @@ proc IS_VAR {varname {line none} {safe 1}} {
 
 # This function, verify if an array exist
 proc IS_ARRAY {varname {line none}} {
-	global ARRAY INTEGERS
+	global ARRAY INTEGERS ignore
 	# We get contains in the bracket, to evit error in the continuous
-	set data [GET_CONTAINS $varname "(" ")"]
+	set data [GET_CONTAINS $varname "\[" "\]"]
 	# We space the bracket
-	set _data [string map "( { ( } ) { ) }" [lindex $data 0]]
+	set _data [string map "\[ { \[ } \] { \] }" [lindex $data 0]]
 	set arrayname [lindex $_data 0]
 	set index ""
-	if {[lsearch -exact [array names ARRAY] $arrayname,type] != -1} {
+	if {[lsearch -exact [array names ARRAY] $arrayname,type] != -1 || $ignore} {
 		set type [lindex [array get ARRAY $arrayname,type] 1]
-		foreach "token1 id token3" [lrange $_data 1 end] {
-			if {$token1 == "(" && $token3 == ")"} {
-				# We restore the data save before
-				set id [REVERSE_GET_CONTAINS $id [lindex $data 1]]
-				if {$id != ""} {
-					# index maybe an expression (var, array, calcul, ...)
-					# We add in the list after the operation
-					set index "$index,[GET_CALCUL $id $line]"
+		if {$ignore && $type == ""} {set type ascii}
+		set args [lrange $_data 1 end]
+		if {$args != ""} {
+			foreach "token1 id token3" [lrange $_data 1 end] {
+				if {$token1 == "\[" && $token3 == "\]"} {
+					# We restore the data save before
+					set id [REVERSE_GET_CONTAINS $id [lindex $data 1]]
+					if {$id != ""} {
+						# index maybe an expression (var, array, calcul, ...)
+						# We add in the list after the operation
+						set index "$index,[GET_CALCUL $id $line]"
+					} else {
+						error "Error in the line $line, index empty"
+					}
+				} elseif $ignore {
+					return
 				} else {
-					error "Error in the line $line, index empty"
+					error "Error in line $line, syntax error"
 				}
-			} else {
-				error "Error in line $line, syntax error"
 			}
+		} else {
+			return
 		}
 		# We construct the tcl name
 		set arrayname $arrayname\([string range $index 1 end]\)
@@ -149,15 +162,16 @@ proc IS_ARRAY {varname {line none}} {
 
 # This function, verify if an function exist
 proc IS_FUNCTION {function_name {line none}} {
-	global FUNCTION
+	global FUNCTION ignore
 	# We get contains in the bracket, to evit error in the continuous
 	set data [GET_CONTAINS $function_name "(" ")"]
 	# We space the bracket
 	set _data [string map "( { ( } ) { ) }" [lindex $data 0]]
 	set function_name [lindex $_data 0]
 	set args ""
-	if {[lsearch -exact [array names FUNCTION] $function_name,type] != -1} {
+	if {[lsearch -exact [array names FUNCTION] $function_name,type] != -1 || $ignore} {
 		set type [lindex [array get FUNCTION $function_name,type] 1]
+		if {$ignore && $type == ""} {set type ascii}
 		set token1 [lindex $_data 1]
 		set arg [lindex $_data 2]
 		set token3 [lindex $_data 3]
@@ -171,6 +185,8 @@ proc IS_FUNCTION {function_name {line none}} {
 					set args "$args [GET_CALCUL $e $line]"
 				}
 			}
+		} elseif $ignore {
+			return
 		} else {
 			error "Error in line $line, syntax error"
 		}
@@ -224,15 +240,18 @@ proc GET_EXPR {c {line none}} {
 	set result ""
 	set operator_map ""
 	# We save the contains of bracket to evit error in the following
-	set data [GET_CONTAINS $c "(" ")"]
-	set c [lindex $data 0]
+	set data1 [GET_CONTAINS $c "(" ")"]
+	set data2 [GET_CONTAINS [lindex $data1 0] "\[" "\]"]
+	set c [lindex $data2 0]
+	set c [string map [list "\[" "\\\[" "\]" "\\\]"] "$c"]
 	# We create the map
 	foreach operator $OPERATORS {
 		lappend operator_map $operator " $operator "
 	}
 	set c [eval concat [string map $operator_map "$c"]]
 	# We restore the data save before
-	set c [REVERSE_GET_CONTAINS $c [lindex $data 1]]
+	set c [REVERSE_GET_CONTAINS $c [lindex $data2 1]]
+	set c [REVERSE_GET_CONTAINS $c [lindex $data1 1]]
 	foreach e $c {
 		# We verify if is var or array or function
 		set is_var 0
@@ -305,7 +324,7 @@ proc GET_CALCUL {c {line none} {primary_type ""}} {
 
 # This function eval the algo
 proc EVAL {code} {
-	global VAR TYPES ARRAY FUNCTION
+	global VAR TYPES ARRAY FUNCTION ignore
 	set line 0
 	set new_code ""
 	set d [GET_STRING $code]
@@ -316,18 +335,20 @@ proc EVAL {code} {
 		incr line;
 		# We delete space in begin and in end
 		set c [string trim $c]
-		# if begin by ""
+		# if is empty
 		if {[string index $c 0] == ""} {
 			continue;
 		} elseif {[lsearch "BEGIN END" $c] != -1} {
 			# We pass
 		}
+		# We do it to evit error in the using as list
+		set c [string map [list "\"" "\\\""] $c]
 		set _c [lindex [split $c] 0]
 		# We get the argument part
 		set args [eval concat [lrange [split $c] 1 end]]
 		switch -- $_c {
 			ALGO {
-				set new_code "$new_code;puts \"ALGO [lrange $c 1 end]\""
+				set new_code "$new_code;puts \{ALGO [lrange $c 1 end]\}"
 			}
 			VAR {
 				set args [string map ": { : }" $args]
@@ -404,7 +425,6 @@ proc EVAL {code} {
 				} else {
 					error "Error in line $line, data \"$varname\" unknowed"
 				}
-				# JE DOIS CREER CREER DES STRUCTURE ET JUSTE FAIRE DES FORMAT: PROC A {} {...} ET USED PAR INFO BODY A
 				set new_code "$new_code;[format [info body READ_STRUCT] $type $varname $line $type]"
 			}
 			IF {
@@ -487,7 +507,7 @@ proc EVAL {code} {
 					# We remove the token
 					set c [lreplace $c 1 1]
 					set varname [lindex $c 0]
-					set args [lrange $c 1 end]
+					set args [GET_ARG [lrange $c 1 end] ,]
 					# We verify if var or array
 					set data_var [IS_VAR $varname $line]
 					set data_array [IS_ARRAY $varname $line]
@@ -502,7 +522,10 @@ proc EVAL {code} {
 						error "Error in line $line, data \"$varname\" unknowed"
 					}
 					# We get the calcul
-					set result [GET_CALCUL $args $line $type]
+					set result ""
+					foreach e $args {
+						set result "$result[GET_CALCUL $e $line $type]"
+					}
 					set new_code "$new_code;[format [info body AFFECTATION_STRUCT] $result $type $varname $line $type]"
 				} else {
 					set new_code "$new_code;set @ [GET_CALCUL $c $line]"
@@ -524,10 +547,16 @@ proc EVAL {code} {
 }
 
 proc COMPILE {code} {
+	global ignore
+	if {[lindex [split $code \n] 0] == "#strict=0"} {
+		set ignore 1
+	} else {
+		set ignore 0
+	}
 	set code [DEL_COMMENT $code]
 	set result [EVAL $code]
 	set f [open "out.tcl" w]
-	puts $f "$result;if \[catch \{main\} error\] {puts \$error}"
+	puts $f "$result;if \[catch \{main\} err\] \{puts \$err\}"
 	close $f
 	puts "Compile success"
 }
@@ -536,9 +565,5 @@ if {[llength $argv] > 0} {
 	set f [open [lindex $argv 0] r]
 	set code [read $f]
 	close $f
-	if [catch {
-		COMPILE $code
-	} err] {
-		puts $err
-	}
+	COMPILE $code
 }

@@ -1,0 +1,49 @@
+#strict=0
+# It permit to use TCL function and varname
+
+# We import the framework Tk
+package("require","Tk")
+
+# This function return the executor TCL of a function
+FUNCTION lambda():ascii
+	return("\[[lindex $args 0] [lrange $args 1 end]\]")
+END
+
+# This function get stat about battery
+FUNCTION get_stat():integer
+	global("status")
+	f <- open("/sys/class/power_supply/BAT1/charge_full", "r")
+	charge_full <- read(f)
+	close(f)
+	f <- open("/sys/class/power_supply/BAT1/charge_now", "r")
+	charge_now <- read(f)
+	close(f)
+	f <- open("/sys/class/power_supply/BAT1/status", "r")
+	status <- string("trim", read(f))
+	close(f)
+	return(100*charge_now/charge_full)
+END
+
+# This function is a loop of verification of power of the battery
+FUNCTION loop():ascii
+	global("power","status")
+	# We get the stats
+	p <- get_stat()
+	# We verify, if the battery is lower and not charging
+	IF p<6 && status != "{Charging}"
+		.label("configure","-foreground", "red")
+		# We show message about the battery
+		tk_messageBox("-icon", "warning", "-detail", "{Battery Low}", "-title", "{Battery Stat}")
+	ELSE
+		.label("configure", "-foreground", "green")
+	END
+	power <- "Battery: ", p, "%"
+	# We set a timer to repeat this function
+	after(10000, lambda("loop"))
+END
+
+# We set the label
+lb <- label(".label", "-textvariable", "power", "-font", "{arial 24}")
+# We load the label
+pack(lb)
+loop()

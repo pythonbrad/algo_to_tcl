@@ -19,15 +19,15 @@ BEGIN
 		count <- 0
 		WHILE count < length_data
 			WRITE "Entrer la valeur de la matrice ",i,",",count
-			READ matrice(i)(count)
+			READ matrice[i][count]
 			count <- count+1
 		END
 	END
 	FOR i<-0 TO length_matrice
 		FOR j<-0 TO length_data
-			result(i)(j) <- 0
+			result[i][j] <- 0
 			FOR k<-0 TO length_matrice
-				result(i)(j) <- result(i)(j) + matrice(i)(k)*matrice(k)(j)
+				result[i][j] <- result[i][j] + matrice[i][k]*matrice[k][j]
 			END
 		END
 	END

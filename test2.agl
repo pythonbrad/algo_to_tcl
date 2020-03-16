@@ -7,13 +7,13 @@ VAR result:integer
 BEGIN
 	i <- 0
 	WHILE i < 100
-		data(i) <- i
+		data[i] <- i
 		i <- i+1
 	END
 	i<-0
 	WHILE i < 100
-		result<-data(i)*data(i)
-		WRITE data(i)*data(i)
+		result<-data[i]*data[i]
+		WRITE data[i]*data[i]
 		i<-i+1
 	END
 END
