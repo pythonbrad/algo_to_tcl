@@ -396,19 +396,23 @@ proc make_window_active { editor_no } {
 	# create the "window" menu option
 	set m .menu.build
 	menu $m -tearoff 0
-	.menu add cascade -label "Tools" -menu $m -underline 0
-	proc _compile file {
-		set f [open $file r]
-		set data [read $f]
-		close $f
-		if ![catch {COMPILE $data} err] {
-			tk_messageBox -icon info -detail {Compile success} -title Result
-		} else {
-			tk_messageBox -icon warning -title Result -detail $err
+
+	# We create the menu only for some ext
+	if {[lsearch ".agl .aglx" $editor($editor_no,extension)] != -1} {
+		proc _compile file {
+			set f [open $file]
+			set data [read $f]
+			close $f
+			if ![catch {COMPILE $data} err] {
+				tk_messageBox -icon info -detail {Compile success} -title Result
+			} else {
+				tk_messageBox -icon warning -title Result -detail $err
+			}
 		}
+		.menu add cascade -label "Tools" -menu $m -underline 0
+		$m add command -label "Compile" -command "if \[catch {_compile $editor($editor_no,file)} err\] {puts {compiling error}}" -underline 0
+		$m add command -label "Execute" -command "if \[catch {exec rxvt -e bash -c -e \"tclsh out.tcl;echo Process end;read\"} err\] {puts {executing error}}" -underline 0	
 	}
-	$m add command -label "Compile" -command "if \[catch {_compile $editor($editor_no,file)} err\] {puts {compiling error}}" -underline 0
-	$m add command -label "Execute" -command "if \[catch {exec lxterminal -e bash -c -e \"tclsh out.tcl;echo Process end;read\"} err\] {puts {executing error}}" -underline 0
 
 	# create the "window" menu option
 	set m .menu.help
