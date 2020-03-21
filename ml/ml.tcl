@@ -1631,7 +1631,10 @@ set file_types {
 	{{FastBase Source}	{.fb}	      }
 	{{Magix Source}	{.ms}	      }
 	{{Html}	{.html .htm}	      }
-	{{Text Files}	{.txt}	      }}
+	{{Text Files}	{.txt}	      }
+	{{AGL Scripts}	{.agl}	      }
+	{{AGL+ Scripts}	{.aglx}	      }
+}
 
 # create a global array syntax(file_extension,commands)
 # this is used by the "tag_word" procedure to detect words
