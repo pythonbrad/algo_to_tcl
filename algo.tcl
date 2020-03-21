@@ -560,10 +560,3 @@ proc COMPILE {code} {
 	close $f
 	puts "Compile success"
 }
-
-if {[llength $argv] > 0} {
-	set f [open [lindex $argv 0] r]
-	set code [read $f]
-	close $f
-	COMPILE $code
-}
