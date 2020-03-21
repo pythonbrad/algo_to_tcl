@@ -4,7 +4,7 @@
 # find & file history
 set editor(find_history) {}
 set editor(replace_history) {}
-set editor(file_history) {/root/my-documents/project/algo_to_tcl/exemples/timer.aglx /root/my-documents/project/algo_to_tcl/exemples/code.agl /root/my-documents/project/algo_to_tcl/exemples/code.agl}
+set editor(file_history) {}
 
 # fonts for each file type
 # to specify/change the font for a specific file type insert a line as follows;
