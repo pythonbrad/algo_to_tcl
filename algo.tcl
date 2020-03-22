@@ -73,7 +73,8 @@ proc GET_CONTAINS {code open_tag close_tag} {
 				# We save the length of each data to sort after
 				# We do it to evit any error, with a(1),a(a(1)) where we have a(#DATA1#),a(a(#DATA1#))
 				set d [list [string range $code $open_quote_id $i] "#DATA$count#"]
-				set _data([string length $d]) $d
+				# We add ".$count" to evit problem of data of same length
+				set _data([string length $d].$count) $d
 				incr count
 			}
 		} else {
@@ -568,4 +569,11 @@ proc COMPILE {code} {
 	puts $f "$result;if \[catch \{main\} err\] \{puts \$err\}"
 	close $f
 	puts "Compile success"
+}
+
+if {$argv != ""} {
+	set f [open $argv]
+	set data [read $f]
+	close $f
+	COMPILE $data
 }
