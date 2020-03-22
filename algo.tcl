@@ -104,12 +104,17 @@ proc REVERSE_GET_CONTAINS {c map} {
 	return $c
 }
 
+# This function delete space in an expression
+proc REMOVE_SPACE c {
+	return [string map "{ } {}" $c]
+}
+
 # This function permit to get argument in an expression
 # eg: GET_ARG {string, int   ,   integer,   234,11} --> {string int integer 234 11}
 # eg: GET_ARG {a:  int} --> {a int}
 proc GET_ARG {c sep} {
 	# We modify the text before
-	set c [string map "{ } {}" $c]
+	set c [REMOVE_SPACE $c]
 	set data [GET_CONTAINS $c "(" ")"]
 	set c [eval concat [split [eval concat [split [lindex $data 0] $sep]]]]
 	# We do it to evit error in the using as list
@@ -510,7 +515,7 @@ proc EVAL {code} {
 				set is_array 0
 				set is_var 0
 				# We space the token
-				set c [string map "{ } {}" $c]
+				set c [REMOVE_SPACE $c]
 				set c [string map "<- { <- }" $c]
 				# We verify if token present
 				if {[lindex $c 1] == "<-"} {
@@ -575,5 +580,5 @@ if {$argv != ""} {
 	set f [open $argv]
 	set data [read $f]
 	close $f
-	COMPILE $data
+	if [catch {COMPILE $data} err] {puts $err}
 }
