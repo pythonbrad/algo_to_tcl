@@ -70,13 +70,22 @@ proc GET_CONTAINS {code open_tag close_tag} {
 		} elseif {$char == $close_tag} {
 			incr open_quote -1
 			if !$open_quote {
-				lappend data [string range $code $open_quote_id $i] "#DATA$count#"
+				# We save the length of each data to sort after
+				# We do it to evit any error, with a(1),a(a(1)) where we have a(#DATA1#),a(a(#DATA1#))
+				set d [list [string range $code $open_quote_id $i] "#DATA$count#"]
+				set _data([string length $d]) $d
 				incr count
 			}
 		} else {
 			continue;
 		}
 	}
+	# We sort by length
+	foreach e [lreverse [lsort [array names _data]]] {
+		lappend data [lindex [array get _data $e] 1]
+	}
+	# We concat to remove sublist
+	set data [eval concat $data]
 	foreach "value var" $data {
 		# like value contains open tag and close tag and this funtion should get only the contains
 		# we add the open and close tag in var
@@ -108,7 +117,7 @@ proc GET_ARG {c sep} {
 }
 
 # This function, verify if a var exist
-proc IS_VAR {varname {line none} {safe 1}} {
+proc IS_VAR {varname {line none}} {
 	global VAR ignore
 	if {[lsearch -exact [array names VAR] $varname,type] != -1 || $ignore & [string is wordchar $varname] & ![string is double $varname]} {
 		set type [lindex [array get VAR $varname,type] 1]
