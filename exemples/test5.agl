@@ -1,0 +1,11 @@
+ARRAY data:integer
+
+BEGIN
+	data[    3    *     2] <- 3
+	data[1+2    +   3  -   4] <- 2
+	data[1+2+3-4][data[1+2+3-4]] <- 2
+	data[1+2+3-4][data[1+2+3-4]][data[1+2+3-4]] <- 2
+	data[1+2+3-4][data[1*2   *     2 /2   ]][data[4/2*1]] <- 2
+	WRITE data[         3        *     2         -1      +1       /   1]
+	WRITE data[1+2+3-4][data[1*2   *     2 /2   ]][data[4/2*1]]
+END

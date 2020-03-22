@@ -31,5 +31,6 @@ BEGIN
 			END
 		END
 	END
+	# We call a tcl expression to show all elements of result
 	WRITE "[array get result]"
 END

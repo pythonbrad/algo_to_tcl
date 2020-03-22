@@ -13,5 +13,6 @@ BEGIN
 			data[i][ii] <- i*ii
 		END
 	END
+	# We call a tcl expression to show elements of data
 	WRITE "[array names data]"
 END
