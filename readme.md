@@ -9,3 +9,5 @@ This program permit to compile the algorithm in TCL.
 
 # How run
 * wish main.tcl
+
+![Image](https://github.com/pythonbrad/learn_mala_tcl/blob/master/Screenshot.png)
